@@ -27,7 +27,7 @@ for i in range(len(split_symptoms)):
 fig, axes = plt.subplots(num_arrays, MOSAIC_COLUMNS, figsize=(10 * MOSAIC_COLUMNS, 4 * num_arrays))
 
 
-fig.suptitle('Pregnancy Symptoms',  fontweight='bold')
+fig.suptitle('Pregnancy Overview',  fontweight='bold')
 
 #colors = [['#f788a6', 0.2], ['#f5e6bc', 0.2], ['#cce7fc', 0.1]]    # Colored
 #colors = [['#f0f0f0', 0.8], ['#f0f0f0', 0.4], ['#f0f0f0', 0.1]]    # Grayscale
