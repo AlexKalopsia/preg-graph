@@ -17,40 +17,59 @@ x_header = 'Week'
 
 symptoms = ['Nausea', 'Fatigue', 'Diarrhea', 'Sore Breasts', 'Breathlessness', 'Smell Sensitivity', 'Stomach Pain', 'Bad Taste in Mouth', 'Migraine', 'Heartburn', 'Knee Pain', 'Hip Pain', 'Sweating']
 
-MOSAIC_COLUMNS = 2
+MOSAIC_COLUMNS = 4
 num_arrays = -(-len(symptoms) // MOSAIC_COLUMNS)
 split_symptoms = [symptoms[i*MOSAIC_COLUMNS:(i+1)*MOSAIC_COLUMNS] for i in range(num_arrays)]
-last_array_length = len(split_symptoms[-1])
-desired_length = MOSAIC_COLUMNS
-if last_array_length < desired_length:
-    split_symptoms[-1] += [None] * (desired_length - last_array_length)
-print(split_symptoms)
 
-fig, ax_dict = plt.subplot_mosaic(split_symptoms)
+for i in range(len(split_symptoms)):
+    while len(split_symptoms[i]) < MOSAIC_COLUMNS:
+        split_symptoms[i].append(None)
+
+mosaic_layout = split_symptoms
+
+fig = plt.figure(figsize=(10 * MOSAIC_COLUMNS, 3 * num_arrays))
+ax_dict = fig.subplot_mosaic(mosaic_layout)
+#fig, ax_dict = plt.subplot_mosaic(split_symptoms)
 fig.suptitle('Symptoms')
 
+#colors = [['#f788a6', 0.2], ['#f5e6bc', 0.2], ['#cce7fc', 0.1]]
+colors = [['#f0f0f0', 0.8], ['#f0f0f0', 0.4], ['#f0f0f0', 0.1]]
 
-for i in range(len(symptoms)):
-    if (symptoms[i] != None):
-        ax = ax_dict[symptoms[i]]
-        ax.set_title(symptoms[i])
+
+for symptom in symptoms:
+    if symptom != None:
+        ax = ax_dict[symptom]
+        ax.set_title(symptom)
         x_data = data['Week']
-        y_data = data[symptoms[i]]
+        y_data = data[symptom]
         #print(y_data)
         SPLINE_RES = 500
         spl = PchipInterpolator(x_data, y_data)
         x_new = np.linspace(x_data.min(), x_data.max(), num=SPLINE_RES)
         y_smooth = spl(x_new)
         # Draw
-        ax.fill_between(x_new, 5, where = x_new < 13, facecolor='#f0f0f0', alpha=0.5)
-        ax.fill_between(x_new, 5, where = (x_new >= 13) & (x_new < 28), facecolor='#f0f0f0', alpha=0.3)
-        ax.fill_between(x_new, 5, where = x_new > 28, facecolor='#f0f0f0', alpha=0.5)
+        ax.grid(True, alpha=0.2)
+        ax.fill_between(x_new, 5, where = x_new < 12, facecolor=colors[0][0], alpha=colors[0][1])
+        ax.fill_between(x_new, 5, where = (x_new >= 12) & (x_new < 28), facecolor=colors[1][0], alpha=colors[1][1])
+        ax.fill_between(x_new, 5, where = x_new >= 28, facecolor=colors[2][0], alpha=colors[2][1])
         ax.set_xticks(np.arange(data[x_header].min(), data[x_header].max() + 1, 4))
+        ax.set_yticks(np.arange(0, data[x_header].max() + 1, 1))
         ax.set_xlabel('Week')
         ax.set_ylabel('Intensity')
         ax.set_xlim(left=WEEK_MIN-1, right=WEEK_MAX)
-        ax.plot(x_new, y_smooth, label=symptoms[i], linestyle='--', color='orange')
+        ax.plot(x_new, y_smooth, label=symptom, linestyle='--', linewidth=2, color='orange')
         ax.scatter(x_data, y_data, s=6, color='blue', zorder=5)
 
-plt.savefig('test.png')
+for ax in ax_dict.values():
+    vertical_lines = ax.get_xgridlines()
+    if len(vertical_lines) > 2:  # Check if there's a second vertical line
+        #vertical_lines[2].set_linewidth(2)
+        vertical_lines[2].set(alpha=1)  # Set the thickness to 2 points
+    if len(vertical_lines) > 6:  # Check if there's a second vertical line
+        #vertical_lines[6].set_linewidth(2)
+        vertical_lines[6].set(alpha=0.7)  # Set the thickness to 2 points
+
+plt.subplots_adjust(hspace=0.7) 
+plt.savefig('test.png', dpi=300)
+
 #plt.show()
