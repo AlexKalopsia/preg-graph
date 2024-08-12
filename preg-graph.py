@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,6 +13,8 @@ from scipy.interpolate import PchipInterpolator
 @dataclass
 class Style:
     background_color: str
+    graph_background_color: str
+    text_color: str
     line_style: str
     line_color: str
     line_width: float
@@ -24,25 +27,29 @@ class Style:
 class FigureStyle(Enum):
     DEFAUL = Style(
         background_color='#fff',
+        graph_background_color='#fff',
+        text_color='#000',
         line_style='--',
-        line_color='orange',
+        line_color='#ffa500',
         line_width=2,
         dot_color='blue',
         dot_size=8,
         trimesters_color=[['#fff', 1.0], ['#fff', 1.0], ['#fff', 1.0]],
-        trimesters_separator_alpha=0.2,
-        grid_alpha=0.65
+        trimesters_separator_alpha=0.65,
+        grid_alpha=0.2
     )
     DARK = Style(
         background_color='#0d1117',
-        line_style='--',
-        line_color='orange',
+        graph_background_color='#010409',
+        text_color='#e8eff4',
+        line_style='-',
+        line_color='#b37a09',
         line_width=2,
-        dot_color='white',
-        dot_size=8,
+        dot_color='#ffa500',
+        dot_size=10,
         trimesters_color=[['#010409', 1.0], ['#010409', 1.0], ['#010409', 1.0]],
-        trimesters_separator_alpha=0.2,
-        grid_alpha=0.65
+        trimesters_separator_alpha=0.65,
+        grid_alpha=0.05
     )
 
     @property
@@ -63,6 +70,8 @@ categories = ['Anxiety', 'Fatigue', 'Breathlessness', 'Smell Sensitivity', 'Naus
 'Heartburn', 'Sore Breasts', 'Knee Pain', 'Hip Pain', 'Hands Swelling/Pain',
 'Sweating', 'Weight']
 
+CURRENT_STYLE = FigureStyle.DEFAUL
+
 COLUMNS = 3
 # Based on the amount of columns, split data in separate arrays per raw
 num_arrays = -(-len(categories) // COLUMNS)
@@ -80,20 +89,32 @@ axes_flat = axes.flatten()
 TITLE = 'Pregnancy Overview'
 X_LABEL = 'Week'
 
-fig.suptitle(TITLE, fontweight='bold', fontsize=24)
-
 # Styling
 SPLINE_RES = 300
 SUBPLOTS_HSPACING = 0.7
 SUBPLOTS_WSPACING = 0.4
-LINE_COLOR = 'orange'
-LINE_STYLE = '--'
-LINE_WIDTH = 2
-DOTS_COLOR = 'blue'
-DOTS_SIZE = 8
-TRIMESTER_STYLES = [['#fff', 1.0], ['#fff', 1.0], ['#fff', 1.0]]              # White
+TEXT_COLOR = CURRENT_STYLE.value.text_color
+LINE_COLOR = CURRENT_STYLE.value.line_color
+LINE_STYLE = CURRENT_STYLE.value.line_style
+LINE_WIDTH = CURRENT_STYLE.value.line_width
+DOTS_COLOR = CURRENT_STYLE.value.dot_color
+DOTS_SIZE = CURRENT_STYLE.value.dot_size
+TRIMESTER_STYLES = CURRENT_STYLE.value.trimesters_color
+TRIMESTER_SEPARATOR_ALPHA = CURRENT_STYLE.value.trimesters_separator_alpha
 #TRIMESTER_STYLES = [['#f788a6', 0.2], ['#f5e6bc', 0.2], ['#cce7fc', 0.1]]    # Colored
 #TRIMESTER_STYLES = [['#f0f0f0', 0.8], ['#f0f0f0', 0.4], ['#f0f0f0', 0.1]]    # Grayscale
+GRID_ALPHA = CURRENT_STYLE.value.grid_alpha
+BACKGROUND_COLOR = CURRENT_STYLE.value.background_color
+GRAPH_BACKGROUND_COLOR = CURRENT_STYLE.value.graph_background_color
+
+mpl.rcParams['text.color'] = TEXT_COLOR
+mpl.rcParams['axes.labelcolor'] = TEXT_COLOR
+mpl.rcParams['xtick.color'] = TEXT_COLOR
+mpl.rcParams['ytick.color'] = TEXT_COLOR
+mpl.rcParams['axes.titlecolor'] = TEXT_COLOR
+
+fig.suptitle(TITLE, fontweight='bold', fontsize=24)
+fig.patch.set_facecolor(BACKGROUND_COLOR)
 
 WEEK_MIN = 4
 WEEK_MAX = 42
@@ -130,11 +151,23 @@ for i, cat_name in enumerate(categories):
     # Set graph parameters
     ax.set_xticks(np.arange(x_data.min(), x_data.max() + 1, 4))
     ax.set_yticks(np.arange(MIN_YTICK, MAX_YTICK, INCR_YTICK))
-    ax.set_xlabel(X_LABEL, labelpad=8)
-    ax.set_ylabel(Y_LABEL, labelpad=16)
+    ax.set_xticklabels(ax.get_xticks(), color=TEXT_COLOR)
+    ax.set_yticklabels(ax.get_yticks(), color=TEXT_COLOR)
+    ax.set_xlabel(X_LABEL, labelpad=8, color=TEXT_COLOR)
+    ax.set_ylabel(Y_LABEL, labelpad=16, color=TEXT_COLOR)
     ax.set_xlim(left=X_MIN, right=X_MAX)
     ax.set_ylim(bottom=Y_MIN, top=Y_MAX)
-    ax.grid(True, alpha=0.2)
+    ax.grid(True, alpha=GRID_ALPHA)
+
+    for spine in ax.spines.values():
+        spine.set_edgecolor(TEXT_COLOR)
+        #spine.set_linewidth(TEXT_COLOR)
+        #spine.set_linestyle(TEXT_COLOR)
+
+    ax.tick_params(axis='x', colors=TEXT_COLOR)  # Set x-axis tick label color
+    ax.tick_params(axis='y', colors=TEXT_COLOR)
+
+    ax.set_facecolor(GRAPH_BACKGROUND_COLOR)
 
     # Trimester background styles
     ax.fill_between(x_new, 5, where = x_new < 12, facecolor=TRIMESTER_STYLES[0][0],
@@ -162,9 +195,9 @@ for ax in axes_flat:
         vertical_lines = ax.get_xgridlines()
         # Len check to prevent our of bound issues
         if len(vertical_lines) > 2:
-            vertical_lines[2].set(alpha=0.65)
+            vertical_lines[2].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
         if len(vertical_lines) > 6:
-            vertical_lines[6].set(alpha=0.65)
+            vertical_lines[6].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
 
 bold_font = FontProperties(weight='bold')
 fig.text(0.98, 0.02, 'made with ' + r'$ \bf{preg\text{-}graph}$', ha='right', va='bottom')
