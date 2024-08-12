@@ -1,18 +1,18 @@
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
-from scipy.interpolate import make_interp_spline, PchipInterpolator
-
-
+import pandas as pd
+from scipy.interpolate import PchipInterpolator
 
 # Pull data, and clean NaN
-data_raw = pd.read_csv('graph.csv')
+data_raw = pd.read_csv('data.csv')
 data = data_raw.replace([np.inf, -np.inf], np.nan).fillna(0)
 
 x_header = 'Week'
-categories = ['Nausea', 'Fatigue', 'Sore Breasts', 'Breathlessness', 'Smell Sensitivity', 'Stomach Pain', 'Diarrhea', 'Bad Taste in Mouth', 'Migraine', 'Heartburn', 'Knee Pain', 'Hip Pain', 'Sweating', 'Weight']
+categories = ['Nausea', 'Fatigue', 'Sore Breasts', 'Breathlessness',
+'Smell Sensitivity', 'Stomach Pain', 'Diarrhea', 'Bad Taste in Mouth', 'Migraine',
+'Heartburn', 'Knee Pain', 'Hip Pain', 'Sweating', 'Swelling', 'Weight']
 
-COLUMNS = 4
+COLUMNS = 3
 num_arrays = -(-len(categories) // COLUMNS)
 split_categories = [categories[i*COLUMNS:(i+1)*COLUMNS] for i in range(num_arrays)]
 RAWS = num_arrays
@@ -67,16 +67,20 @@ for i, name in enumerate(categories):
     x_new = np.linspace(x_data.min(), x_data.max(), num=SPLINE_RES)
     y_smooth = spl(x_new)
     ax.grid(True, alpha=0.2)
-    ax.fill_between(x_new, 5, where = x_new < 12, facecolor=COLORS[0][0], alpha=COLORS[0][1])
-    ax.fill_between(x_new, 5, where = (x_new >= 12) & (x_new < 28), facecolor=COLORS[1][0], alpha=COLORS[1][1])
-    ax.fill_between(x_new, 5, where = x_new >= 28, facecolor=COLORS[2][0], alpha=COLORS[2][1])
+    ax.fill_between(x_new, 5, where = x_new < 12, facecolor=COLORS[0][0],
+                    alpha=COLORS[0][1])
+    ax.fill_between(x_new, 5, where = (x_new >= 12) & (x_new < 28), 
+                    facecolor=COLORS[1][0], alpha=COLORS[1][1])
+    ax.fill_between(x_new, 5, where = x_new >= 28, facecolor=COLORS[2][0],
+                    alpha=COLORS[2][1])
     ax.set_xticks(np.arange(x_data.min(), x_data.max() + 1, 4))
     ax.set_yticks(np.arange(MIN_YTICK, MAX_YTICK, INCR_YTICK))
     ax.set_xlabel(X_LABEL, labelpad=8)
     ax.set_ylabel(Y_LABEL, labelpad=16)
     ax.set_xlim(left=WEEK_MIN-1, right=WEEK_MAX)
     ax.set_ylim(bottom=Y_MIN, top=Y_MAX)
-    ax.plot(x_new, y_smooth, label=name, linestyle=LINE_STYLE, linewidth=LINE_WIDTH, color=LINE_COLOR)
+    ax.plot(x_new, y_smooth, label=name, linestyle=LINE_STYLE, linewidth=LINE_WIDTH,
+            color=LINE_COLOR)
     ax.scatter(x_data, y_data, s=DOTS_SIZE, color=DOTS_COLOR, zorder=5)
 
 # Deleate leftover empty axes
