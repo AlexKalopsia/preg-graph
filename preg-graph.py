@@ -1,7 +1,3 @@
-from dataclasses import dataclass
-from enum import Enum
-from typing import List, Tuple
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,56 +5,7 @@ import pandas as pd
 from matplotlib.font_manager import FontProperties
 from scipy.interpolate import PchipInterpolator
 
-
-@dataclass
-class Style:
-    background_color: str
-    graph_background_color: str
-    text_color: str
-    line_style: str
-    line_color: str
-    line_width: float
-    dot_color: str
-    dot_size: float
-    trimesters_color: List[Tuple[str, float]] 
-    trimesters_separator_alpha: float
-    grid_alpha: float
-
-class FigureStyle(Enum):
-    DEFAUL = Style(
-        background_color='#fff',
-        graph_background_color='#fff',
-        text_color='#000',
-        line_style='--',
-        line_color='#ffa500',
-        line_width=2,
-        dot_color='blue',
-        dot_size=8,
-        trimesters_color=[['#fff', 1.0], ['#fff', 1.0], ['#fff', 1.0]],
-        trimesters_separator_alpha=0.65,
-        grid_alpha=0.2
-    )
-    DARK = Style(
-        background_color='#0d1117',
-        graph_background_color='#010409',
-        text_color='#e8eff4',
-        line_style='-',
-        line_color='#b37a09',
-        line_width=2,
-        dot_color='#ffa500',
-        dot_size=10,
-        trimesters_color=[['#010409', 1.0], ['#010409', 1.0], ['#010409', 1.0]],
-        trimesters_separator_alpha=0.65,
-        grid_alpha=0.05
-    )
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def style(self):
-        return self._style
+import styles
 
 # Pull data, and clean NaN
 data_raw = pd.read_csv('data.csv')
@@ -70,7 +17,7 @@ categories = ['Anxiety', 'Fatigue', 'Breathlessness', 'Smell Sensitivity', 'Naus
 'Heartburn', 'Sore Breasts', 'Knee Pain', 'Hip Pain', 'Hands Swelling/Pain',
 'Sweating', 'Weight']
 
-CURRENT_STYLE = FigureStyle.DEFAUL
+CURRENT_STYLE = styles.FigureStyle.DARK
 
 COLUMNS = 3
 # Based on the amount of columns, split data in separate arrays per raw
@@ -86,13 +33,22 @@ for i in range(len(split_categories)):
 fig, axes = plt.subplots(num_arrays, COLUMNS, figsize=(10 * COLUMNS, 4 * RAWS))
 axes_flat = axes.flatten()
 
+# Settings
+FIGURE_DPI = 300
 TITLE = 'Pregnancy Overview'
 X_LABEL = 'Week'
+SPLINE_RES = 300
+WEEK_MIN = 4
+WEEK_MAX = 42
+INTENSITY_MIN = 0
+INTENSITY_MAX = 5
+WEIGHT_MIN = 55
+WEIGHT_MAX = 75
 
 # Styling
-SPLINE_RES = 300
 SUBPLOTS_HSPACING = 0.7
 SUBPLOTS_WSPACING = 0.4
+
 TEXT_COLOR = CURRENT_STYLE.value.text_color
 LINE_COLOR = CURRENT_STYLE.value.line_color
 LINE_STYLE = CURRENT_STYLE.value.line_style
@@ -101,27 +57,14 @@ DOTS_COLOR = CURRENT_STYLE.value.dot_color
 DOTS_SIZE = CURRENT_STYLE.value.dot_size
 TRIMESTER_STYLES = CURRENT_STYLE.value.trimesters_color
 TRIMESTER_SEPARATOR_ALPHA = CURRENT_STYLE.value.trimesters_separator_alpha
-#TRIMESTER_STYLES = [['#f788a6', 0.2], ['#f5e6bc', 0.2], ['#cce7fc', 0.1]]    # Colored
-#TRIMESTER_STYLES = [['#f0f0f0', 0.8], ['#f0f0f0', 0.4], ['#f0f0f0', 0.1]]    # Grayscale
 GRID_ALPHA = CURRENT_STYLE.value.grid_alpha
 BACKGROUND_COLOR = CURRENT_STYLE.value.background_color
 GRAPH_BACKGROUND_COLOR = CURRENT_STYLE.value.graph_background_color
 
 mpl.rcParams['text.color'] = TEXT_COLOR
-mpl.rcParams['axes.labelcolor'] = TEXT_COLOR
-mpl.rcParams['xtick.color'] = TEXT_COLOR
-mpl.rcParams['ytick.color'] = TEXT_COLOR
-mpl.rcParams['axes.titlecolor'] = TEXT_COLOR
 
 fig.suptitle(TITLE, fontweight='bold', fontsize=24)
 fig.patch.set_facecolor(BACKGROUND_COLOR)
-
-WEEK_MIN = 4
-WEEK_MAX = 42
-INTENSITY_MIN = 0
-INTENSITY_MAX = 5
-WEIGHT_MIN = 55
-WEIGHT_MAX = 75
 
 # Do a graph (ax) per category
 for i, cat_name in enumerate(categories):
@@ -138,8 +81,7 @@ for i, cat_name in enumerate(categories):
 
     # Setup graph data
     ax = axes_flat[i]
-    ax.set_title(cat_name, fontweight='bold', pad=16)
-
+    ax.set_title(cat_name, fontweight='bold', color=TEXT_COLOR, pad=16)
     x_data = data[x_header]
     y_data = data[cat_name]
 
@@ -159,16 +101,12 @@ for i, cat_name in enumerate(categories):
     ax.set_ylim(bottom=Y_MIN, top=Y_MAX)
     ax.grid(True, alpha=GRID_ALPHA)
 
+    # Styling
+    ax.set_facecolor(GRAPH_BACKGROUND_COLOR)
     for spine in ax.spines.values():
         spine.set_edgecolor(TEXT_COLOR)
-        #spine.set_linewidth(TEXT_COLOR)
-        #spine.set_linestyle(TEXT_COLOR)
-
-    ax.tick_params(axis='x', colors=TEXT_COLOR)  # Set x-axis tick label color
+    ax.tick_params(axis='x', colors=TEXT_COLOR)
     ax.tick_params(axis='y', colors=TEXT_COLOR)
-
-    ax.set_facecolor(GRAPH_BACKGROUND_COLOR)
-
     # Trimester background styles
     ax.fill_between(x_new, 5, where = x_new < 12, facecolor=TRIMESTER_STYLES[0][0],
                     alpha=TRIMESTER_STYLES[0][1])
@@ -176,6 +114,13 @@ for i, cat_name in enumerate(categories):
                     facecolor=TRIMESTER_STYLES[1][0], alpha=TRIMESTER_STYLES[1][1])
     ax.fill_between(x_new, 5, where = x_new >= 28, facecolor=TRIMESTER_STYLES[2][0],
                     alpha=TRIMESTER_STYLES[2][1])
+    # Make trimester separators darker for each graph
+    vertical_lines = ax.get_xgridlines()
+    # Len check to prevent our of bound issues
+    if len(vertical_lines) > 2:
+        vertical_lines[2].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
+    if len(vertical_lines) > 6:
+        vertical_lines[6].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
 
     # Draw spline
     ax.plot(x_new, y_smooth, label=cat_name, linestyle=LINE_STYLE, linewidth=LINE_WIDTH,
@@ -183,26 +128,15 @@ for i, cat_name in enumerate(categories):
     # Draw dots
     ax.scatter(x_data, y_data, s=DOTS_SIZE, color=DOTS_COLOR, zorder=5)
 
-
-
 # Delete leftover empty axes
 for i in range(len(categories), len(axes_flat)):
-    fig.delaxes(axes_flat[i])
+    fig.delaxes(axes_flat[i])       
 
-# Make trimester separators darker for each graph
-for ax in axes_flat:
-    if ax is not None:
-        vertical_lines = ax.get_xgridlines()
-        # Len check to prevent our of bound issues
-        if len(vertical_lines) > 2:
-            vertical_lines[2].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
-        if len(vertical_lines) > 6:
-            vertical_lines[6].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
-
+# Watermark
 bold_font = FontProperties(weight='bold')
 fig.text(0.98, 0.02, 'made with ' + r'$ \bf{preg\text{-}graph}$', ha='right', va='bottom')
 
 # Export figure
 plt.subplots_adjust(hspace=SUBPLOTS_HSPACING, wspace=SUBPLOTS_WSPACING)
-plt.savefig('graph.png', dpi=300)
+plt.savefig('graph.png', dpi=FIGURE_DPI)
 #plt.show()
