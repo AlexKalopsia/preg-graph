@@ -12,11 +12,16 @@ from styles import styles
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', type=str, default='data.csv', required=False, help='The CSV file to import data from')
-    parser.add_argument('--output', type=str, default='graph.png', required=False, help='The PNG filename to export')
-    parser.add_argument('--columns', type=int, default=3, required=False, help='The amount of columns the exported figure should have')
-    parser.add_argument('--style', type=str, choices=styles.keys(), default='default', help='The style to use')
-    parser.add_argument('--dpi', type=int, default=300, required=False, help='The output resolution of the exported figure')
+    parser.add_argument('--input', type=str, default='data.csv', required=False, 
+        help='The CSV file to import data from')
+    parser.add_argument('--output', type=str, default='graph.png', required=False, 
+        help='The PNG filename to export')
+    parser.add_argument('--columns', type=int, default=3, required=False, 
+        help='The amount of columns the exported figure should have')
+    parser.add_argument('--style', type=str, choices=styles.keys(), default='default', 
+        help='The style to use')
+    parser.add_argument('--dpi', type=int, default=300, required=False, 
+        help='The output resolution of the exported figure')
 
     args = parser.parse_args()
     if args.columns <= 0:
@@ -137,8 +142,8 @@ def main():
             vertical_lines[6].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
 
         # Draw spline
-        ax.plot(x_new, y_smooth, label=cat_name, linestyle=LINE_STYLE, linewidth=LINE_WIDTH,
-                color=LINE_COLOR)
+        ax.plot(x_new, y_smooth, label=cat_name, linestyle=LINE_STYLE, 
+            linewidth=LINE_WIDTH, color=LINE_COLOR)
         # Draw dots
         ax.scatter(x_data, y_data, s=DOTS_SIZE, color=DOTS_COLOR, zorder=5)
 
@@ -147,7 +152,8 @@ def main():
         fig.delaxes(axes_flat[i])       
 
     # Watermark
-    fig.text(0.98, 0.02, 'made with ' + r'$ \bf{preg\text{-}graph}$', ha='right', va='bottom')
+    fig.text(0.98, 0.02, 'made with ' + r'$ \bf{preg\text{-}graph}$', 
+        ha='right', va='bottom')
 
     # Export figure
     plt.subplots_adjust(hspace=SUBPLOTS_HSPACING, wspace=SUBPLOTS_WSPACING)
