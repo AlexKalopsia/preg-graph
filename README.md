@@ -1,7 +1,7 @@
 # preg-graph
 
 **preg-graph** is a simple visualisation utility built with Python and PyPlot. 
-It pulls pregnancy data from a CSV file, and exports a nice looking graph with all the relative information. 
+It pulls pregnancy data from a CSV file, and exports a nice-looking graph with all the relative information. 
 
 ![preg-graph](/preg-graph.jpg?raw=true "pre-graph")
 
@@ -12,7 +12,7 @@ Any other column can be customized to whatever sympthom.
 
 ## Usage
 
-By simply calling `py .\pre-graph.py`, you will pull the pregnancy data stored in `data.csv` and export a `graph.png` file. 
+By simply calling `py .\preg-graph.py`, you will pull the pregnancy data stored in `data.csv` and export a `graph.png` file. 
 
 Alternatively, you could pass additional arguments:
 
