@@ -24,10 +24,10 @@ Alternatively, you could pass additional arguments:
 | `--style`        | Name of the graph style.                     |
 | `--dpi`          | DPI resolution of the exported graph.        |
 
-For example `py .\pre-graph.py -i my_data.csv -o /output/my_graph.png --columns 2 --dpi 150` will pull the data from `my_data.csv` 
+For example `py .\preg-graph.py -i my_data.csv -o /output/my_graph.png --columns 2 --dpi 150` will pull the data from `my_data.csv` 
 and export a 2-column graph to the `/output` subfolder, with the resolution of 150 DPI.
 
 ## Styling
 
 You can add your own styling by editing the `style.py`. 
-The styling options follow the requirements of [PyPlot](https://www.w3schools.com/python/matplotlib_line.asp).
+The styling options follow the requirements of [PyPlot](https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D.set_linestyle)
