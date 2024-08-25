@@ -31,11 +31,11 @@ def main():
     data_raw = pd.read_csv(args.input)
     data = data_raw.replace([np.inf, -np.inf], np.nan).fillna(0)
 
+    # Skip first column (Week)
+    categories = list(data.columns[1:])
     x_header = 'Week'
-    categories = ['Anxiety', 'Fatigue', 'Breathlessness', 'Smell Sensitivity', 'Nausea',
-    'Stomach Pain', 'Diarrhea', 'Incontinence', 'Bad Taste in Mouth', 'Migraine',
-    'Heartburn', 'Sore Breasts', 'Knee Pain', 'Hip Pain', 'Hands Swelling/Pain',
-    'Sweating', 'Weight']
+
+    print(categories)
 
     STYLE_PARAMS = styles[args.style].params
     COLUMNS = args.columns
@@ -44,6 +44,8 @@ def main():
     num_arrays = -(-len(categories) // COLUMNS)
     RAWS = num_arrays
     split_categories = [categories[i*COLUMNS:(i+1)*COLUMNS] for i in range(num_arrays)]
+
+    print(split_categories)
 
     # Build grid
     for i in range(len(split_categories)):
