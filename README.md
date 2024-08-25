@@ -5,6 +5,11 @@ It pulls pregnancy data from a CSV file, and exports a nice looking graph with a
 
 ![preg-graph](/preg-graph.jpg?raw=true "pre-graph")
 
+## Requirements
+
+Currently, the first column of the input CSV file needs to be called `Week` and must be reserved to the week number. 
+Any other column can be customized to whatever sympthom.
+
 ## Usage
 
 By simply calling `py .\pre-graph.py`, you will pull the pregnancy data stored in `data.csv` and export a `graph.png` file. 
