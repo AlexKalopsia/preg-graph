@@ -12,9 +12,9 @@ from styles import styles
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', type=str, default='data.csv', required=False, 
+    parser.add_argument('-i', '--input', type=str, default='data.csv', required=False, 
         help='The CSV file to import data from')
-    parser.add_argument('--output', type=str, default='graph.png', required=False, 
+    parser.add_argument('-o', '--output', type=str, default='graph.png', required=False, 
         help='The PNG filename to export')
     parser.add_argument('--columns', type=int, default=3, required=False, 
         help='The amount of columns the exported figure should have')
