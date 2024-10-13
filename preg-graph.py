@@ -15,7 +15,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, default='data.csv', required=False, 
         help='The CSV file to import data from')
-    parser.add_argument('-o', '--output', type=str, default='graph.png', required=False, 
+    parser.add_argument('-o', '--output', type=str, default='graph.png', required=False,
         help='The PNG filename to export')
     parser.add_argument('--columns', type=int, default=3, required=False, 
         help='The amount of columns the exported figure should have')
@@ -110,7 +110,8 @@ def main():
 
         # Set graph parameters
         regular_ticks = np.arange(WEEK_MIN, WEEK_MAX + 1, 4)
-        all_ticks = np.unique(np.append(regular_ticks, WEEK_BIRTH)) if WEEK_BIRTH is not None else regular_ticks
+        all_ticks = np.unique(np.append(regular_ticks, 
+            WEEK_BIRTH)) if WEEK_BIRTH is not None else regular_ticks
 
         ax.set_xticks(all_ticks)
         ax.set_yticks(np.arange(MIN_YTICK, MAX_YTICK, INCR_YTICK))
@@ -179,13 +180,15 @@ def main():
                 if x == WEEK_BIRTH:
                     dot_sizes[i] = DOT.size * 7
 
-        ax.scatter(x_data, y_data, s=dot_sizes, color=DOT.color.hex, alpha=DOT.color.alpha, zorder=5)
+        ax.scatter(x_data, y_data, s=dot_sizes, color=DOT.color.hex, 
+            alpha=DOT.color.alpha, zorder=5)
 
         # Draw a special dot at birth
         if WEEK_BIRTH is not None:
             closest_index = (np.abs(x_data - WEEK_BIRTH)).idxmin()  
             y_target = y_data.iloc[closest_index]
-            ax.scatter(WEEK_BIRTH, y_target, s=DOT.size, color=LINE.color.hex, alpha=1.0, zorder=6)
+            ax.scatter(WEEK_BIRTH, y_target, s=DOT.size, color=LINE.color.hex, 
+                alpha=1.0, zorder=6)
 
     # Delete leftover empty axes
     for i in range(len(categories), len(axes_flat)):
