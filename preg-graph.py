@@ -4,6 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.patches import Rectangle
 from scipy.interpolate import PchipInterpolator
 
 from styles import styles
@@ -35,8 +36,6 @@ def main():
     categories = list(data.columns[1:])
     x_header = 'Week'
 
-    print(categories)
-
     STYLE_PARAMS = styles[args.style].params
     COLUMNS = args.columns
 
@@ -44,8 +43,6 @@ def main():
     num_arrays = -(-len(categories) // COLUMNS)
     RAWS = num_arrays
     split_categories = [categories[i*COLUMNS:(i+1)*COLUMNS] for i in range(num_arrays)]
-
-    print(split_categories)
 
     # Build grid
     for i in range(len(split_categories)):
@@ -61,6 +58,7 @@ def main():
     SPLINE_RES = 300
     WEEK_MIN = 4
     WEEK_MAX = 42
+    WEEK_BIRTH = 38 # set to None if birth hasn't occurred yet
     INTENSITY_MIN = 0
     INTENSITY_MAX = 5
     WEIGHT_MIN = 55
@@ -71,14 +69,13 @@ def main():
     SUBPLOTS_WSPACING = 0.4
 
     TEXT_COLOR = STYLE_PARAMS.text_color
-    LINE_COLOR = STYLE_PARAMS.line_color
-    LINE_STYLE = STYLE_PARAMS.line_style
-    LINE_WIDTH = STYLE_PARAMS.line_width
-    DOTS_COLOR = STYLE_PARAMS.dot_color
-    DOTS_SIZE = STYLE_PARAMS.dot_size
-    TRIMESTER_STYLES = STYLE_PARAMS.trimesters_color
-    TRIMESTER_SEPARATOR_ALPHA = STYLE_PARAMS.trimesters_separator_alpha
+    LINE = STYLE_PARAMS.line
+    DOT = STYLE_PARAMS.dot
     GRID_ALPHA = STYLE_PARAMS.grid_alpha
+    TRIMESTER_SEPARATOR_ALPHA = STYLE_PARAMS.trimesters_separator_alpha
+    TRIMESTER_COLORS = STYLE_PARAMS.trimesters_color
+    BIRTH_SEPARATOR = STYLE_PARAMS.birth_separator
+    POST_BIRTH_COLOR = STYLE_PARAMS.post_birth_color
     BACKGROUND_COLOR = STYLE_PARAMS.background_color
     GRAPH_BACKGROUND_COLOR = STYLE_PARAMS.graph_background_color
 
@@ -112,7 +109,10 @@ def main():
         y_smooth = spl(x_new)
 
         # Set graph parameters
-        ax.set_xticks(np.arange(x_data.min(), x_data.max() + 1, 4))
+        regular_ticks = np.arange(WEEK_MIN, WEEK_MAX + 1, 4)
+        all_ticks = np.unique(np.append(regular_ticks, WEEK_BIRTH)) if WEEK_BIRTH is not None else regular_ticks
+
+        ax.set_xticks(all_ticks)
         ax.set_yticks(np.arange(MIN_YTICK, MAX_YTICK, INCR_YTICK))
         ax.set_xticklabels(ax.get_xticks(), color=TEXT_COLOR)
         ax.set_yticklabels(ax.get_yticks(), color=TEXT_COLOR)
@@ -129,12 +129,20 @@ def main():
         ax.tick_params(axis='x', colors=TEXT_COLOR)
         ax.tick_params(axis='y', colors=TEXT_COLOR)
         # Trimester background styles
-        ax.fill_between(x_new, 5, where = x_new < 12, facecolor=TRIMESTER_STYLES[0][0],
-                        alpha=TRIMESTER_STYLES[0][1])
-        ax.fill_between(x_new, 5, where = (x_new >= 12) & (x_new < 28), 
-                        facecolor=TRIMESTER_STYLES[1][0], alpha=TRIMESTER_STYLES[1][1])
-        ax.fill_between(x_new, 5, where = x_new >= 28, facecolor=TRIMESTER_STYLES[2][0],
-                        alpha=TRIMESTER_STYLES[2][1])
+        trimester_first = Rectangle((0, ax.get_ylim()[0]), 12, 
+                      ax.get_ylim()[1] - ax.get_ylim()[0], 
+                      color=TRIMESTER_COLORS[0].hex, alpha=TRIMESTER_COLORS[0].alpha)
+        ax.add_patch(trimester_first)
+        trimester_second = Rectangle((12, ax.get_ylim()[0]), 16, 
+                      ax.get_ylim()[1] - ax.get_ylim()[0], 
+                      color=TRIMESTER_COLORS[1].hex, alpha=TRIMESTER_COLORS[1].alpha)
+        ax.add_patch(trimester_second)
+        fill_limit = ax.get_xlim()[1] - 28 if WEEK_BIRTH is None else WEEK_BIRTH - 28
+        trimester_third = Rectangle((28, ax.get_ylim()[0]), fill_limit, 
+                      ax.get_ylim()[1] - ax.get_ylim()[0], 
+                      color=TRIMESTER_COLORS[2].hex, alpha=TRIMESTER_COLORS[2].alpha)
+        ax.add_patch(trimester_third)
+
         # Make trimester separators darker for each graph
         vertical_lines = ax.get_xgridlines()
         # Len check to prevent our of bound issues
@@ -143,11 +151,41 @@ def main():
         if len(vertical_lines) > 6:
             vertical_lines[6].set(alpha=TRIMESTER_SEPARATOR_ALPHA)
 
+        if WEEK_BIRTH is not None:
+            # We cover the grid line relative to the tick
+            ax.axvline(x=WEEK_BIRTH, color=GRAPH_BACKGROUND_COLOR, 
+                linestyle='solid', linewidth=1,
+                alpha=1.0)
+            ax.axvline(x=WEEK_BIRTH, color=POST_BIRTH_COLOR.hex, 
+                linestyle='solid', linewidth=1,
+                alpha=POST_BIRTH_COLOR.alpha)
+            fill = Rectangle((WEEK_BIRTH, ax.get_ylim()[0]), 
+                  ax.get_xlim()[1] - WEEK_BIRTH, 
+                  ax.get_ylim()[1] - ax.get_ylim()[0], 
+                  color=POST_BIRTH_COLOR.hex, alpha=POST_BIRTH_COLOR.alpha) 
+            ax.add_patch(fill)
+            # We draw the pregnancy birth separatror, if we have one
+            ax.axvline(x=WEEK_BIRTH, color=BIRTH_SEPARATOR.color.hex, 
+                linestyle=BIRTH_SEPARATOR.style.value, linewidth=BIRTH_SEPARATOR.width,
+                alpha=BIRTH_SEPARATOR.color.alpha, label='Birth')
+
         # Draw spline
-        ax.plot(x_new, y_smooth, label=cat_name, linestyle=LINE_STYLE, 
-            linewidth=LINE_WIDTH, color=LINE_COLOR)
+        ax.plot(x_new, y_smooth, label=cat_name, linestyle=LINE.style.value, 
+            linewidth=LINE.width, color=LINE.color.hex, alpha=LINE.color.alpha)
         # Draw dots
-        ax.scatter(x_data, y_data, s=DOTS_SIZE, color=DOTS_COLOR, zorder=5)
+        dot_sizes = [DOT.size] * len(x_data)
+        if WEEK_BIRTH is not None:
+            for i, x in enumerate(x_data):
+                if x == WEEK_BIRTH:
+                    dot_sizes[i] = DOT.size * 7
+
+        ax.scatter(x_data, y_data, s=dot_sizes, color=DOT.color.hex, alpha=DOT.color.alpha, zorder=5)
+
+        # Draw a special dot at birth
+        if WEEK_BIRTH is not None:
+            closest_index = (np.abs(x_data - WEEK_BIRTH)).idxmin()  
+            y_target = y_data.iloc[closest_index]
+            ax.scatter(WEEK_BIRTH, y_target, s=DOT.size, color=LINE.color.hex, alpha=1.0, zorder=6)
 
     # Delete leftover empty axes
     for i in range(len(categories), len(axes_flat)):
